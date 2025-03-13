@@ -22,9 +22,11 @@ fun FoodScannerApp() {
                 BottomNavigationBar(navController)
             }
         ) {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .padding(it)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = it.calculateBottomPadding())
+            ) {
                 FoodScannerNavGraph(navController = navController)
             }
         }
