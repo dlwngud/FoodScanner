@@ -69,4 +69,7 @@ dependencies {
     implementation(libs.androidx.camera.compose)
 
     implementation(libs.accompanist.permissions)
+
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
 }
