@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -36,6 +37,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -44,6 +47,7 @@ fun ScannerScreen() {
     val cameraXModule = remember { CameraXModule() }
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var scannedBarcode by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         cameraPermissionState.launchPermissionRequest()
@@ -52,7 +56,12 @@ fun ScannerScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
         if (cameraPermissionState.status.isGranted) {
             cameraXModule.initializeCamera(context)
-            CameraPreview(cameraXModule = cameraXModule)
+            CameraPreview(
+                cameraXModule = cameraXModule,
+                onBarcodeDetected = { barcode ->
+                    scannedBarcode = barcode
+                }
+            )
         } else {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -64,6 +73,28 @@ fun ScannerScreen() {
                 }) {
                     Text("카메라 권한 요청")
                 }
+            }
+        }
+
+        // 스캔된 바코드 표시
+        scannedBarcode?.let { barcode ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "스캔된 바코드: $barcode",
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .background(
+                            color = Color.Black.copy(alpha = 0.7f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(16.dp)
+                )
             }
         }
     }
@@ -99,12 +130,13 @@ fun ScannerScreen() {
 @Composable
 fun CameraPreview(
     modifier: Modifier = Modifier,
-    cameraXModule: CameraXModule
+    cameraXModule: CameraXModule,
+    onBarcodeDetected: (String) -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
-        cameraXModule.startCamera(lifecycleOwner)
+        cameraXModule.startCamera(lifecycleOwner, onBarcodeDetected)
     }
 
     DisposableEffect(Unit) {
